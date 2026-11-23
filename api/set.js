@@ -1,5 +1,7 @@
 import { Redis } from '@upstash/redis';
 
+// Vercel inyecta estas variables al conectar Upstash desde el Marketplace.
+// Según cómo se conecte, pueden venir con un nombre u otro.
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
@@ -10,6 +12,10 @@ const KEY = 'miSet';
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
+      const clave = process.env.LISTA_PASSWORD || 'contraseña';
+      if (req.query.clave !== clave) {
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
+      }
       const valores = await redis.smembers(KEY);
       return res.status(200).json(valores);
     }
