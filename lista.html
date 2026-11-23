@@ -1,54 +1,76 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista</title>
 </head>
+
 <body>
-  <h1>Valores guardados</h1>
-  <form id="login">
-    <input id="clave" type="password" placeholder="Contraseña" required>
-    <button type="submit">Ver</button>
-  </form>
-  <p id="mensaje"></p>
-  <ul id="lista"></ul>
-  <a href="index.html">Volver</a>
+    <h1>Valores guardados</h1>
+    <form id="login">
+        <input id="clave" type="password" placeholder="Contraseña" required>
+        <button type="submit">Ver</button>
+    </form>
+    <p id="mensaje"></p>
+    <ul id="lista"></ul>
+    <button id="btnBorrar" style="display:none">Borrar lista</button>
+    <a href="index.html">Volver</a>
 
-  <script>
-    const lista = document.getElementById('lista');
-    const mensaje = document.getElementById('mensaje');
-    const login = document.getElementById('login');
+    <script>
+        const lista = document.getElementById('lista');
+        const mensaje = document.getElementById('mensaje');
+        const login = document.getElementById('login');
+        const btnBorrar = document.getElementById('btnBorrar');
 
-    login.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const clave = document.getElementById('clave').value;
-      mensaje.textContent = 'Cargando...';
+        let clave = ''; // afuera, para que la vean el submit y borrar
 
-      fetch('/api/set?clave=' + encodeURIComponent(clave))
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        return data;
-      })
-      .then((valores) => {
-        mensaje.textContent = '';
-        login.style.display = 'none';
-        lista.innerHTML = '';
-        if (valores.length === 0) {
-          lista.innerHTML = '<li>Todavía no hay nada</li>';
-          return;
-        }
-        for (const v of valores) {
-          const li = document.createElement('li');
-          li.textContent = v; // textContent evita inyectar HTML
-          lista.appendChild(li);
-        }
-      })
-      .catch((err) => {
-        mensaje.textContent = 'Error: ' + err.message;
-      });
-    });
-  </script>
+        btnBorrar.addEventListener('click', async () => {
+            if (!confirm('¿Seguro que querés borrar toda la lista?')) return;
+            try {
+                mensaje.textContent = 'Borrando...';
+                const res = await fetch('/api/set?clave=' + encodeURIComponent(clave), { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                mensaje.textContent = data.mensaje;
+                lista.innerHTML = '<li>Todavía no hay nada</li>';
+            } catch (err) {
+                mensaje.textContent = 'Error: ' + err.message;
+            }
+        });
+
+        login.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clave = document.getElementById('clave').value; // sin const: usa la de afuera
+            mensaje.textContent = 'Cargando...';
+
+            fetch('/api/set?clave=' + encodeURIComponent(clave))
+                .then(async (res) => {
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    return data;
+                })
+                .then((valores) => {
+                    mensaje.textContent = '';
+                    login.style.display = 'none';
+                    btnBorrar.style.display = 'inline-block';
+                    lista.innerHTML = '';
+                    if (valores.length === 0) {
+                        lista.innerHTML = '<li>Todavía no hay nada</li>';
+                        return;
+                    }
+                    for (const v of valores) {
+                        const li = document.createElement('li');
+                        li.textContent = v;
+                        lista.appendChild(li);
+                    }
+                })
+                .catch((err) => {
+                    mensaje.textContent = 'Error: ' + err.message;
+                });
+        });
+    </script>
 </body>
+
 </html>
