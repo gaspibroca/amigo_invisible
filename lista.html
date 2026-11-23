@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista</title>
+</head>
+<body>
+  <h1>Valores guardados</h1>
+  <ul id="lista"><li>Cargando...</li></ul>
+  <a href="index.html">Volver</a>
+
+  <script>
+    const lista = document.getElementById('lista');
+
+    fetch('/api/set')
+      .then((res) => res.json())
+      .then((valores) => {
+        lista.innerHTML = '';
+        if (valores.length === 0) {
+          lista.innerHTML = '<li>Todavía no hay nada</li>';
+          return;
+        }
+        for (const v of valores) {
+          const li = document.createElement('li');
+          li.textContent = v; // textContent evita inyectar HTML
+          lista.appendChild(li);
+        }
+      })
+      .catch(() => {
+        lista.innerHTML = '<li>Error al cargar</li>';
+      });
+  </script>
+</body>
+</html>

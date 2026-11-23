@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar valor</title>
+</head>
+<body>
+  <h1>Agregar valor</h1>
+  <form id="form">
+    <input id="valor" placeholder="Escribí algo" maxlength="200" required>
+    <button type="submit">Guardar</button>
+  </form>
+  <p id="mensaje"></p>
+
+  <script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('valor');
+    const mensaje = document.getElementById('mensaje');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const valor = input.value.trim();
+      if (!valor) return;
+
+      try {
+        const res = await fetch('/api/set', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ valor }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        mensaje.textContent = data.nuevo ? 'Guardado ✔' : 'Ya estaba en el set';
+        input.value = '';
+      } catch (err) {
+        mensaje.textContent = 'Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
